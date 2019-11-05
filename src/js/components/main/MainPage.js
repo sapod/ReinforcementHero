@@ -1,10 +1,11 @@
 import React, { Component } from "react";
-import { Redirect } from 'react-router-dom'
+import { Redirect } from 'react-router-dom';
 import './main.sass';
 import SubmitForm from '../simple_user/submitForm/SubmitForm';
 import { Table, Dropdown, DropdownButton, Spinner, Toast } from 'react-bootstrap';
 import AssociatesPopup from "../simple_user/associates/AssociatesPopup";
-import {observer} from 'mobx-react'
+import LeaderBoard, { createAdminTable } from "../LeaderBoard";
+import {observer} from 'mobx-react';
 import Cookies from 'universal-cookie';
 import NewGameForm from "../admin/newGameForm/NewGameForm";
 
@@ -18,47 +19,13 @@ class MainPage extends Component {
         };
 
         this.cookies = new Cookies();
-        this.props.store.serverHandler.getGames();
+        if(this.props.store.serverHandler.games.length === 0)
+            this.props.store.serverHandler.getGames();
     }
 
     gameChanged(g) {
         this.setState({game: g.name});
         this.props.store.serverHandler.getAdminAllAssignments(g._id);
-    }
-
-    createAdminTable() {
-        let games = this.props.store.serverHandler.games ? this.props.store.serverHandler.games : [];
-
-        return (
-            <div>
-                <DropdownButton className="dropdown-_center" variant="secondary" title={this.state.game}>
-                    {games.map(g => <Dropdown.Item key={g._id}
-                                                   onClick={this.gameChanged.bind(this, g)}>{g.name}</Dropdown.Item>)}
-                </DropdownButton>
-                <br/>
-                <Table striped bordered hover>
-                    <thead>
-                    <tr>
-                        <th>User Names</th>
-                        {/*<th>User Emails</th>*/}
-                        <th>Submission Date</th>
-                        <th>Score</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {this.props.store.serverHandler.all_assignment_submissions &&
-                    this.props.store.serverHandler.all_assignment_submissions.map(s => (
-                        <tr>
-                            <td>{s.group_ids.join(',')}</td>
-                            {/*<td>/!*s.user_emails.join(', ')*!/</td>*/}
-                            <td>{s.submission_date}</td>
-                            <td>{s.scores.simpleAvg}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </Table>
-            </div>
-        );
     }
 
     createUserTable() {
@@ -114,12 +81,19 @@ class MainPage extends Component {
                         </Toast>
                     </div>
                 </div>
+                <LeaderBoard store={this.props.store}/>
 
                 {this.props.store.siteData.openAssociatesPopup && <AssociatesPopup store = {this.props.store}/>}
                 <div className="welcome_msg">
                     Hi {this.props.store.serverHandler.user.name+"  |  "}
                     <a className="signout" href="" onClick={() => this.props.store.serverHandler.clearUser()}>Sign out</a>
                 </div>
+
+                {this.props.store.serverHandler.user &&
+                this.props.store.serverHandler.user.email !== 'admin' &&
+                <img alt="" className="trophy" src={require("../../../img/trophy.png")}
+                     onClick={() => this.props.store.siteData.showLeaderBoardPopup(true)}/>}
+
                 <div className="left">
                     {this.props.store.serverHandler.user &&
                     this.props.store.serverHandler.user.email === 'admin' ?
@@ -129,7 +103,7 @@ class MainPage extends Component {
                 <div className="right">
                     {this.props.store.serverHandler.user &&
                     this.props.store.serverHandler.user.email === 'admin' ?
-                    this.createAdminTable() : this.createUserTable()}
+                    createAdminTable(this, true) : this.createUserTable()}
                 </div>
             </div>
         );
