@@ -21,6 +21,8 @@ class MainPage extends Component {
         this.cookies = new Cookies();
         if(this.props.store.serverHandler.games.length === 0)
             this.props.store.serverHandler.getGames();
+        if(this.props.store.serverHandler.users.length === 0)
+            this.props.store.serverHandler.getUsers();
     }
 
     gameChanged(g) {
@@ -29,6 +31,7 @@ class MainPage extends Component {
     }
 
     createUserTable() {
+        const users = this.props.store.serverHandler.users;
         return (
             <Table striped bordered hover>
                 <thead>
@@ -41,14 +44,16 @@ class MainPage extends Component {
                 </thead>
                 <tbody>
                 {this.props.store.serverHandler.assignment_submissions &&
-                this.props.store.serverHandler.assignment_submissions.map(s => (
-                    <tr>
-                        <td>{s.game_name}</td>
-                        <td>{s.group_ids.join(',')}</td>
-                        <td>{s.submission_date}</td>
-                        <td>{s.scores.simpleAvg}</td>
-                    </tr>
-                ))}
+                this.props.store.serverHandler.assignment_submissions.map(s => {
+                    return (
+                        <tr>
+                            <td>{s.game_name}</td>
+                            <td>{s.group_names.join(',')}</td>
+                            <td>{s.submission_date}</td>
+                            <td>{s.scores.simpleAvg}</td>
+                        </tr>
+                    )
+                })}
                 </tbody>
             </Table>
         );
